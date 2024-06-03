@@ -42,8 +42,10 @@ function Login() {
       if (!response.ok) {
         throw new Error(data.error.message);
       }
+      console.log(data);
       console.log("Logged in");
       localStorage.setItem("token", data.idToken);
+      localStorage.setItem("userEmail", email);
       navigate("/home");
     } catch (error) {
       alert(error.message);
