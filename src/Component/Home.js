@@ -6,7 +6,6 @@ import InboxModal from "./InboxModal";
 
 const Home = () => {
   const [showSentModal, setShowSentModal] = useState(false);
-  const [showInboxModal, setShowInboxModal] = useState(false);
 
   return (
     <>
@@ -16,13 +15,7 @@ const Home = () => {
         Sent
       </Button>
       <SentModal show={showSentModal} onHide={() => setShowSentModal(false)} />
-      <Button variant="primary" onClick={() => setShowInboxModal(true)}>
-        Inbox
-      </Button>
-      <InboxModal
-        show={showInboxModal}
-        onHide={() => setShowInboxModal(false)}
-      />
+      <InboxModal />
     </>
   );
 };

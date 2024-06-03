@@ -41,17 +41,19 @@ function ReplyMail({ show, handleClose, to }) {
       handleClose();
     } catch (error) {
       console.error("Error sending mail:", error);
+    } finally {
+      setBody("");
     }
   };
 
   return (
     <Modal show={show} onHide={handleClose}>
       <Modal.Header closeButton>
-        <Modal.Title>Compose Mail</Modal.Title>
+        <Modal.Title>Reply Mail</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form onSubmit={handleSendMail}>
-          <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+          <Form.Group className="mb-3" controlId="replyForm.ControlInput1">
             <Form.Label>To</Form.Label>
             <Form.Control
               type="email"
@@ -62,7 +64,7 @@ function ReplyMail({ show, handleClose, to }) {
             />
           </Form.Group>
 
-          <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
+          <Form.Group className="mb-3" controlId="replyForm.ControlTextarea1">
             <Form.Label>Write Text</Form.Label>
             <JoditEditor ref={editor} value={body} onChange={handleBody} />
           </Form.Group>

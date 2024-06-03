@@ -45,7 +45,7 @@ const SentModal = (props) => {
                       <strong>To:</strong> {mail.to}
                     </Col>
                     <Col xs={6}>
-                      <strong>Mail:</strong> {mail.body}
+                      <strong>Subject:</strong> {mail.subject}
                     </Col>
                     {/* <Col>
                       <strong>Timestamp:</strong> {mail.timestamp}

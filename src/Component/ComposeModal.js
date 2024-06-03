@@ -9,7 +9,8 @@ function ComposeMailModal() {
   const [show, setShow] = useState(false);
   const [to, setTo] = useState("");
   const [body, setBody] = useState("");
-  const [loading, setLoading] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [subject, setSubject] = useState("");
 
   const editor = useRef(null);
 
@@ -18,6 +19,10 @@ function ComposeMailModal() {
 
   const handleTo = (e) => {
     setTo(e.target.value);
+  };
+
+  const handleSubject = (e) => {
+    setSubject(e.target.value);
   };
 
   const handleBody = (newContent) => {
@@ -30,8 +35,10 @@ function ComposeMailModal() {
     const email = {
       to,
       body,
+      subject,
       sender: localStorage.getItem("userEmail"),
       id: uuidv4(),
+      read: false,
     };
     try {
       await fetch(
@@ -50,6 +57,9 @@ function ComposeMailModal() {
       console.error("Error sending mail:", error);
     } finally {
       setLoading(false);
+      setBody("");
+      setTo("");
+      setSubject("");
     }
   };
 
@@ -65,16 +75,24 @@ function ComposeMailModal() {
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSendMail}>
-            <Form.Group
-              className="mb-3"
-              controlId="exampleForm.ControlInput1"
-              onChange={handleTo}
-            >
+            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
               <Form.Label>To</Form.Label>
               <Form.Control
                 type="email"
                 placeholder="name@example.com"
                 autoFocus
+                value={to}
+                onChange={handleTo}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="exampleForm.ControlInput2">
+              <Form.Label>Subject</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Subject"
+                value={subject}
+                onChange={handleSubject}
               />
             </Form.Group>
 
@@ -85,14 +103,15 @@ function ComposeMailModal() {
               <Form.Label>Write Text</Form.Label>
               <JoditEditor ref={editor} value={body} onChange={handleBody} />
             </Form.Group>
+
+            <Button variant="primary" type="submit" disabled={loading}>
+              Send Mail
+            </Button>
           </Form>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
             Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSendMail} type="submit">
-            Send Mail
           </Button>
         </Modal.Footer>
       </Modal>
