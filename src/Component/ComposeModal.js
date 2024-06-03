@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Modal from "react-bootstrap/Modal";
 import { v4 as uuidv4 } from "uuid";
+import JoditEditor from "jodit-react";
 
 function ComposeMailModal() {
   const [show, setShow] = useState(false);
   const [to, setTo] = useState("");
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState("");
+
+  const editor = useRef(null);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -17,8 +20,8 @@ function ComposeMailModal() {
     setTo(e.target.value);
   };
 
-  const handleBody = (e) => {
-    setBody(e.target.value);
+  const handleBody = (newContent) => {
+    setBody(newContent);
   };
 
   const handleSendMail = async (e) => {
@@ -78,10 +81,9 @@ function ComposeMailModal() {
             <Form.Group
               className="mb-3"
               controlId="exampleForm.ControlTextarea1"
-              onChange={handleBody}
             >
               <Form.Label>Write Text</Form.Label>
-              <Form.Control as="textarea" rows={3} />
+              <JoditEditor ref={editor} value={body} onChange={handleBody} />
             </Form.Group>
           </Form>
         </Modal.Body>
