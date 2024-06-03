@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { Row, Col, Container, ListGroup, Button } from "react-bootstrap";
 import ReplyMail from "./ReplyMail";
-import OpenMail from "./OpenMail";
+import OpenMail from "./OpenMail"; // Import the OpenMail component
 
 const Inbox = () => {
   const [inboxMails, setInboxMails] = useState([]);
-  const userEmail = localStorage.getItem("userEmail");
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [replyToEmail, setReplyToEmail] = useState("");
   const [unreadCount, setUnreadCount] = useState(0);
-  const [selectedMail, setSelectedMail] = useState(null);
+  const [showOpenMail, setShowOpenMail] = useState(false);
+  const [openMailContent, setOpenMailContent] = useState(null);
+  const userEmail = localStorage.getItem("userEmail");
 
   const handleInboxMail = async () => {
     const response = await fetch(
@@ -44,77 +45,127 @@ const Inbox = () => {
   };
 
   const handleMailClick = async (mail) => {
-    const updatedMails = inboxMails.map((m) =>
-      m.id === mail.id ? { ...m, read: true } : m
-    );
-    setInboxMails(updatedMails);
+    setOpenMailContent(mail);
+    setShowOpenMail(true);
 
-    try {
-      await fetch(
-        `https://mailboxclient-afc29-default-rtdb.firebaseio.com/email/${mail.id}.json`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ read: true }),
+    if (!mail.read) {
+      try {
+        const response = await fetch(
+          `https://mailboxclient-afc29-default-rtdb.firebaseio.com/email/${mail.id}.json`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ read: true }),
+          }
+        );
+        if (response.ok) {
+          const updatedMails = inboxMails.map((m) =>
+            m.id === mail.id ? { ...m, read: true } : m
+          );
+          setInboxMails(updatedMails);
+          const unread = updatedMails.filter((mail) => !mail.read).length;
+          setUnreadCount(unread);
+          console.log("Mail read status updated successfully");
+        } else {
+          console.error(
+            "Error updating mail read status:",
+            response.statusText
+          );
         }
-      );
-      console.log("Mail read status updated successfully");
-    } catch (error) {
-      console.error("Error updating mail read status:", error);
+      } catch (error) {
+        console.error("Error updating mail read status:", error);
+      }
     }
-
-    setSelectedMail(mail);
-    const unread = updatedMails.filter((m) => !m.read).length;
-    setUnreadCount(unread);
   };
 
-  const handleMailClose = () => {
-    setSelectedMail(null);
+  const handleDeleteMail = async (mailId) => {
+    try {
+      const response = await fetch(
+        `https://mailboxclient-afc29-default-rtdb.firebaseio.com/email/${mailId}.json`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (response.ok) {
+        const updatedMails = inboxMails.filter((mail) => mail.id !== mailId);
+        setInboxMails(updatedMails);
+        const unread = updatedMails.filter((mail) => !mail.read).length;
+        setUnreadCount(unread);
+        console.log("Mail deleted successfully");
+      } else {
+        console.error("Error deleting mail:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error deleting mail:", error);
+    }
+  };
+
+  const handleOpenMailClose = () => {
+    setShowOpenMail(false);
+    setOpenMailContent(null);
   };
 
   return (
     <Container>
       <h2>Inbox ({unreadCount} unread)</h2>
-      {selectedMail ? (
-        <OpenMail
-          mail={selectedMail}
-          onClose={handleMailClose}
-          onReply={handleReply}
-        />
-      ) : (
-        <ListGroup>
-          {inboxMails.length === 0 ? (
-            <ListGroup.Item>No messages found</ListGroup.Item>
-          ) : (
-            inboxMails.map((mail) => (
-              <ListGroup.Item
-                key={mail.id}
-                onClick={() => handleMailClick(mail)}
-                style={{ cursor: "pointer" }}
-              >
-                <Row>
-                  <Col>
-                    {mail.read ? null : (
-                      <span style={{ color: "blue" }}>● </span>
-                    )}
-                    <strong>From:</strong> {mail.sender}
-                  </Col>
-                  <Col xs={6}>
-                    <strong>Subject:</strong> {mail.subject}
-                  </Col>
-                </Row>
-              </ListGroup.Item>
-            ))
-          )}
-        </ListGroup>
-      )}
+      <ListGroup>
+        {inboxMails.length === 0 ? (
+          <ListGroup.Item>No messages found</ListGroup.Item>
+        ) : (
+          inboxMails.map((mail) => (
+            <ListGroup.Item key={mail.id} style={{ cursor: "pointer" }}>
+              <Row>
+                <Col onClick={() => handleMailClick(mail)}>
+                  {mail.read ? null : <span style={{ color: "blue" }}>● </span>}
+                  <strong>From:</strong> {mail.sender}
+                </Col>
+                <Col xs={6} onClick={() => handleMailClick(mail)}>
+                  <strong>Subject:</strong> {mail.subject}
+                </Col>
+                <Col>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteMail(mail.id);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="ml-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleReply(mail.sender);
+                    }}
+                  >
+                    Reply
+                  </Button>
+                </Col>
+              </Row>
+            </ListGroup.Item>
+          ))
+        )}
+      </ListGroup>
+
       <ReplyMail
         show={showReplyModal}
         handleClose={handleReplyModalClose}
         to={replyToEmail}
       />
+      {showOpenMail && (
+        <OpenMail
+          show={showOpenMail}
+          handleClose={handleOpenMailClose}
+          mail={openMailContent}
+          handleReply={handleReply}
+        />
+      )}
     </Container>
   );
 };
