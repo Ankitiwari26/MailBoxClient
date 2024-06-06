@@ -37,7 +37,7 @@ function ComposeMailModal() {
       body,
       subject,
       sender: localStorage.getItem("userEmail"),
-      id: uuidv4(),
+      // id: uuidv4(),
       read: false,
     };
     try {

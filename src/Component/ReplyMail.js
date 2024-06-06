@@ -2,10 +2,9 @@ import { useRef, useState, useEffect } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Modal from "react-bootstrap/Modal";
-import { v4 as uuidv4 } from "uuid";
 import JoditEditor from "jodit-react";
 
-function ReplyMail({ show, handleClose, to }) {
+function ReplyMail({ show, handleClose, to, handleSendMail }) {
   const [toEmail, setToEmail] = useState(to);
   const [body, setBody] = useState("");
   const editor = useRef(null);
@@ -18,32 +17,11 @@ function ReplyMail({ show, handleClose, to }) {
     setBody(newContent);
   };
 
-  const handleSendMail = async (e) => {
+  const handleSentMail = (e) => {
     e.preventDefault();
-    const email = {
-      to: toEmail,
-      body,
-      sender: localStorage.getItem("userEmail"),
-      id: uuidv4(),
-    };
-    try {
-      await fetch(
-        "https://mailboxclient-afc29-default-rtdb.firebaseio.com/email.json",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(email),
-        }
-      );
-      console.log("Mail sent successfully");
-      handleClose();
-    } catch (error) {
-      console.error("Error sending mail:", error);
-    } finally {
-      setBody("");
-    }
+    handleSendMail(toEmail, body);
+    setBody("");
+    handleClose();
   };
 
   return (
@@ -52,7 +30,7 @@ function ReplyMail({ show, handleClose, to }) {
         <Modal.Title>Reply Mail</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Form onSubmit={handleSendMail}>
+        <Form onSubmit={handleSentMail}>
           <Form.Group className="mb-3" controlId="replyForm.ControlInput1">
             <Form.Label>To</Form.Label>
             <Form.Control
